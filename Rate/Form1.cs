@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -13,7 +13,6 @@ using Newtonsoft.Json;
 using System.Net.Http;
 using System.IO;
 using Rate_General.RatesFolder;
-using Rate_General;
 
 namespace Rate_General
 {
@@ -23,10 +22,17 @@ namespace Rate_General
         {
             InitializeComponent();
 
-            generalRate = GetRatesFromFile();
+            FileInfo info = new FileInfo(@"file.json");
+            if (info.Exists)
+                generalRate = GetRatesFromFile();
+            else
+            {
+                generalRate = GetRates();
+                JsonSave();
+            }
         }
         private rates prevRate;
-        private Rate generalRate;
+        private RatesFolder.Rate generalRate;
         private bool mouseDown;
         private Point lastLocation;
         private bool isClicked = false;
@@ -120,26 +126,26 @@ namespace Rate_General
                 autoChecker.Enabled = false;
         }
 
-        private Rate GetRates()
+        private RatesFolder.Rate GetRates()
         {
             using (HttpClient client = new HttpClient())
             {
                 string key = ConfigurationSettings.AppSettings.Get(0);
                 string json = client.GetStringAsync("http://data.fixer.io/api/latest?access_key=" + key).Result;
-                return JsonConvert.DeserializeObject<Rate>(json);
+                return JsonConvert.DeserializeObject<RatesFolder.Rate>(json);
             }
         }
 
-        private Rate GetRatesFromFile()
+        private RatesFolder.Rate GetRatesFromFile()
         {
-            using (FileStream stream = new FileStream("file.json", FileMode.Open))
+            using (FileStream stream = new FileStream("file.json", FileMode.OpenOrCreate))
             {
                 using (StreamReader reader = new StreamReader(stream))
                 {
                     jsonString = reader.ReadLine();
                 }
                 if (!string.IsNullOrEmpty(jsonString))
-                    return JsonConvert.DeserializeObject<Rate>(jsonString);
+                    return JsonConvert.DeserializeObject<RatesFolder.Rate>(jsonString);
                 else
                     return null;
             }
