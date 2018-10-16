@@ -245,7 +245,7 @@ namespace Rate_General
                 nameRates[1] = nameof(generalRate.rates.RUB);
                 nameRates[2] = nameof(generalRate.rates.USD);
 
-                AppendText(updateBoard, $"[{DateTime.Now}]", Color.White);
+                AppendText(updateBoard, $"\n\r[{DateTime.Now}]", Color.White);
                 for (int i = 0; i < 3; i++)
                 {
                     if (prevRates[i] > nowRates[i])
