@@ -15,6 +15,6 @@ namespace Rate_General.RatesFolder
         [JsonProperty("base")]
         public string Base;
         public DateTime date;
-        public rates rates;
+        public Dictionary<string, decimal> rates;
     }
 }

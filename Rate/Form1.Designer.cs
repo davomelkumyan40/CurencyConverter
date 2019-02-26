@@ -44,6 +44,7 @@
             this.more = new System.Windows.Forms.Button();
             this.exchangeButton = new System.Windows.Forms.Button();
             this.exchangePanel = new System.Windows.Forms.Panel();
+            this.rateConsole = new System.Windows.Forms.RichTextBox();
             this.money_result = new System.Windows.Forms.RichTextBox();
             this.money = new System.Windows.Forms.RichTextBox();
             this.updateHistory = new System.Windows.Forms.Label();
@@ -52,10 +53,9 @@
             this.label2 = new System.Windows.Forms.Label();
             this.label1 = new System.Windows.Forms.Label();
             this.convert_money = new System.Windows.Forms.Button();
-            this.change_money2 = new System.Windows.Forms.ComboBox();
             this.change_money = new System.Windows.Forms.ComboBox();
             this.autoChecker = new System.Windows.Forms.Timer(this.components);
-            this.updateBoard = new System.Windows.Forms.RichTextBox();
+            this.change_money2 = new System.Windows.Forms.ComboBox();
             this.generalPanel.SuspendLayout();
             this.menubar.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.user)).BeginInit();
@@ -250,7 +250,7 @@
             // exchangePanel
             // 
             this.exchangePanel.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(25)))), ((int)(((byte)(31)))), ((int)(((byte)(40)))));
-            this.exchangePanel.Controls.Add(this.updateBoard);
+            this.exchangePanel.Controls.Add(this.rateConsole);
             this.exchangePanel.Controls.Add(this.money_result);
             this.exchangePanel.Controls.Add(this.money);
             this.exchangePanel.Controls.Add(this.updateHistory);
@@ -265,6 +265,19 @@
             this.exchangePanel.Name = "exchangePanel";
             this.exchangePanel.Size = new System.Drawing.Size(792, 307);
             this.exchangePanel.TabIndex = 2;
+            // 
+            // updateBoard
+            // 
+            this.rateConsole.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(64)))), ((int)(((byte)(64)))), ((int)(((byte)(64)))));
+            this.rateConsole.BorderStyle = System.Windows.Forms.BorderStyle.None;
+            this.rateConsole.Font = new System.Drawing.Font("Tahoma", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.rateConsole.ForeColor = System.Drawing.Color.White;
+            this.rateConsole.Location = new System.Drawing.Point(28, 75);
+            this.rateConsole.Name = "updateBoard";
+            this.rateConsole.ScrollBars = System.Windows.Forms.RichTextBoxScrollBars.Vertical;
+            this.rateConsole.Size = new System.Drawing.Size(256, 198);
+            this.rateConsole.TabIndex = 0;
+            this.rateConsole.Text = "";
             // 
             // money_result
             // 
@@ -286,7 +299,7 @@
             this.money.Size = new System.Drawing.Size(185, 28);
             this.money.TabIndex = 27;
             this.money.Text = "";
-            this.money.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.money_result_KeyPress);
+            this.money.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.money_KeyPress);
             // 
             // updateHistory
             // 
@@ -360,21 +373,6 @@
             this.convert_money.UseVisualStyleBackColor = false;
             this.convert_money.Click += new System.EventHandler(this.convert_money_Click);
             // 
-            // change_money2
-            // 
-            this.change_money2.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.change_money2.FormattingEnabled = true;
-            this.change_money2.Items.AddRange(new object[] {
-            "AMD",
-            "RUB",
-            "USD",
-            "EUR"});
-            this.change_money2.Location = new System.Drawing.Point(672, 75);
-            this.change_money2.Name = "change_money2";
-            this.change_money2.Size = new System.Drawing.Size(97, 28);
-            this.change_money2.TabIndex = 14;
-            this.change_money2.Text = "Money";
-            // 
             // change_money
             // 
             this.change_money.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
@@ -391,18 +389,20 @@
             // 
             this.autoChecker.Tick += new System.EventHandler(this.refreshAuto_Tick);
             // 
-            // updateBoard
+            // change_money2
             // 
-            this.updateBoard.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(64)))), ((int)(((byte)(64)))), ((int)(((byte)(64)))));
-            this.updateBoard.BorderStyle = System.Windows.Forms.BorderStyle.None;
-            this.updateBoard.Font = new System.Drawing.Font("Tahoma", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.updateBoard.ForeColor = System.Drawing.Color.White;
-            this.updateBoard.Location = new System.Drawing.Point(28, 75);
-            this.updateBoard.Name = "updateBoard";
-            this.updateBoard.ScrollBars = System.Windows.Forms.RichTextBoxScrollBars.Vertical;
-            this.updateBoard.Size = new System.Drawing.Size(256, 198);
-            this.updateBoard.TabIndex = 0;
-            this.updateBoard.Text = "";
+            this.change_money2.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.change_money2.FormattingEnabled = true;
+            this.change_money2.Items.AddRange(new object[] {
+            "AMD",
+            "RUB",
+            "USD",
+            "EUR"});
+            this.change_money2.Location = new System.Drawing.Point(672, 75);
+            this.change_money2.Name = "change_money2";
+            this.change_money2.Size = new System.Drawing.Size(97, 28);
+            this.change_money2.TabIndex = 14;
+            this.change_money2.Text = "Money";
             // 
             // General
             // 
@@ -447,7 +447,6 @@
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Button convert_money;
-        private System.Windows.Forms.ComboBox change_money2;
         private System.Windows.Forms.ComboBox change_money;
         private System.Windows.Forms.CheckBox check_Auto;
         private System.Windows.Forms.Timer autoChecker;
@@ -459,7 +458,8 @@
         private System.Windows.Forms.RichTextBox money_result;
         private System.Windows.Forms.RichTextBox money;
         private System.Windows.Forms.Button menu;
-        private System.Windows.Forms.RichTextBox updateBoard;
+        private System.Windows.Forms.RichTextBox rateConsole;
+        private System.Windows.Forms.ComboBox change_money2;
     }
 }
 

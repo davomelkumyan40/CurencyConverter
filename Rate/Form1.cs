@@ -18,26 +18,33 @@ namespace Rate_General
 {
     public partial class General : Form
     {
+
+        //constructor
         public General()
         {
+            // default winForms function
             InitializeComponent();
+            //
 
             FileInfo info = new FileInfo(@"file.json");
             if (info.Exists)
                 generalRate = GetRatesFromFile();
             else
             {
-                generalRate = GetRates();
-                JsonSave();
+                generalRate = GetRatesWeb();
+                JsonSaveToFile();
             }
         }
-        private rates prevRate;
-        private RatesFolder.Rate generalRate;
-        private bool mouseDown;
+
+        private Dictionary<string, decimal> oldRates = null;
+        private Rate generalRate;
         private Point lastLocation;
+        private bool mouseDown;
         private bool isClicked = false;
         private string jsonString = string.Empty;
+        private decimal finalRateValuel = 0;
 
+        //drop and pick up functions
         private void generalPanel_MouseDown(object sender, MouseEventArgs e)
         {
             mouseDown = true;
@@ -59,13 +66,14 @@ namespace Rate_General
         {
             mouseDown = false;
         }
+        //
 
         private void Close_Click(object sender, EventArgs e)
         {
             Application.Exit();
         }
 
-        private static int xminus(int x)
+        private static int Xminus(int x)
         {
             if (x > 60)
                 x -= 5;
@@ -73,6 +81,7 @@ namespace Rate_General
             return x;
         }
 
+        //Animation of panel
         private void pictureBox1_Click(object sender, EventArgs e)
         {
             int x = 60, y = 11;
@@ -117,7 +126,9 @@ namespace Rate_General
                 buttonsPanel.Enabled = false;
             }
         }
+        //
 
+        //checking if Auto checked or not 
         private void check_Auto_CheckedChanged(object sender, EventArgs e)
         {
             if (check_Auto.CheckState == CheckState.Checked)
@@ -125,56 +136,82 @@ namespace Rate_General
             else
                 autoChecker.Enabled = false;
         }
+        //
 
-        private RatesFolder.Rate GetRates()
+        //Geting rates from web API services and returning type is Rate
+        private Rate GetRatesWeb()
         {
             using (HttpClient client = new HttpClient())
             {
                 string key = ConfigurationSettings.AppSettings.Get(0);
-                string json = client.GetStringAsync("http://data.fixer.io/api/latest?access_key=" + key).Result;
-                return JsonConvert.DeserializeObject<RatesFolder.Rate>(json);
-            }
-        }
-
-        private RatesFolder.Rate GetRatesFromFile()
-        {
-            using (FileStream stream = new FileStream("file.json", FileMode.OpenOrCreate))
-            {
-                using (StreamReader reader = new StreamReader(stream))
+                if (!string.IsNullOrEmpty(key))
                 {
-                    jsonString = reader.ReadLine();
+                    string json = client.GetStringAsync("http://data.fixer.io/api/latest?access_key=" + key + "&symbols=AMD,RUB,USD").Result;
+                    return JsonConvert.DeserializeObject<Rate>(json);
                 }
-                if (!string.IsNullOrEmpty(jsonString))
-                    return JsonConvert.DeserializeObject<RatesFolder.Rate>(jsonString);
                 else
                     return null;
             }
         }
+        //
 
-        private void JsonSave()
+        private Rate GetRatesFromFile()
+        {
+            using (FileStream jsonFile = new FileStream("file.json", FileMode.Open))
+            {
+                using (StreamReader reader = new StreamReader(jsonFile))
+                {
+                    jsonString = reader.ReadLine();
+                }
+                if (!string.IsNullOrEmpty(jsonString))
+                {
+                    try
+                    {
+                        return JsonConvert.DeserializeObject<Rate>(jsonString);
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show(ex.Message);
+                    }
+                        return new Rate
+                        {
+                            success = false,
+                            rates = null
+                        };
+                }
+                else
+                    return new Rate
+                    {
+                        success = false,
+                        rates = null
+                    };
+            }
+        }
+
+        private void JsonSaveToFile()
         {
             string json = JsonConvert.SerializeObject(generalRate);
             using (FileStream stream = new FileStream("file.json", FileMode.OpenOrCreate))
             using (StreamWriter writer = new StreamWriter(stream))
                 writer.Write(json);
-            
+
         }
 
         private void convert_money_Click(object sender, EventArgs e)
         {
             if (generalRate == null)
             {
-                generalRate = GetRates();
-                JsonSave();
-                AppendText(updateBoard, $"[{DateTime.Now}]", Color.White);
-                AppendText(updateBoard, $"[Saved...\r\n]", Color.White);
+                generalRate = GetRatesWeb();
+                JsonSaveToFile();
+                AppendText(rateConsole, $"[{DateTime.Now}]", Color.White);
+                AppendText(rateConsole, $"[Saved...\r\n]", Color.White);
             }
 
-            if(string.IsNullOrEmpty(change_money.Text) || string.IsNullOrEmpty(change_money2.Text) || change_money2.Text == "Money" || change_money.Text == "Money")
+            if (string.IsNullOrEmpty(change_money.Text) || string.IsNullOrEmpty(change_money2.Text) || change_money2.Text == "Money" || change_money.Text == "Money")
                 MessageBox.Show("Not all fields are filled.");
             else
                 money_result.Text = GeneralConverter().ToString();
-            AppendText(updateBoard, $"[Converted]\r\n", Color.White);
+            AppendText(rateConsole, $"[Converted]\r\n", Color.White);
         }
 
         private decimal GeneralConverter()
@@ -184,34 +221,35 @@ namespace Rate_General
                 case (int)Curency.AMD:
                     if (decimal.TryParse(money.Text, out decimal value))
                     {
-                        return value * generalRate.rates.AMD;
+                        return value * generalRate.rates["AMD"];
                     }
                     break;
                 case (int)Curency.RUB:
                     if (decimal.TryParse(money.Text, out decimal value1))
                     {
-                        return value1 * generalRate.rates.RUB;
+                        return value1 * generalRate.rates["RUB"];
                     }
                     break;
                 case (int)Curency.USD:
                     if (decimal.TryParse(money.Text, out decimal value2))
                     {
-                        return value2 * generalRate.rates.USD;
+                        return value2 * generalRate.rates["USD"];
                     }
                     break;
-                default:
+                case (int)Curency.EUR:
                     if (decimal.TryParse(money.Text, out decimal value3))
                     {
-                        return value3 * generalRate.rates.EUR;
+                        return value3 * generalRate.rates["EUR"];
                     }
                     break;
             }
             return 0;
         }
 
-        private void money_result_KeyPress(object sender, KeyPressEventArgs e)
+        //
+        private void money_KeyPress(object sender, KeyPressEventArgs e)
         {
-            if(!char.IsNumber(e.KeyChar) && e.KeyChar != 8)
+            if (!char.IsNumber(e.KeyChar) && e.KeyChar != 8)
             {
                 e.Handled = true;
             }
@@ -233,56 +271,60 @@ namespace Rate_General
             string downArrow = "▼";
             string upArrow = "▲";
             string RightArrow = "⇨";
-
-            if (prevRate != null)
+            if (oldRates != null)
             {
                 decimal[] prevRates = new decimal[3];
-                prevRates[0] = prevRate.AMD;
-                prevRates[1] = prevRate.RUB;
-                prevRates[2] = prevRate.USD;
+                prevRates[0] = oldRates["AMD"];
+                prevRates[1] = oldRates["RUB"];
+                prevRates[2] = oldRates["USD"];
 
                 decimal[] nowRates = new decimal[3];
-                nowRates[0] = generalRate.rates.AMD;
-                nowRates[1] = generalRate.rates.RUB;
-                nowRates[2] = generalRate.rates.USD;
+                nowRates[0] = generalRate.rates["AMD"];
+                nowRates[1] = generalRate.rates["RUB"];
+                nowRates[2] = generalRate.rates["USD"];
 
-                string[] nameRates = new string[3];
-                nameRates[0] = nameof(generalRate.rates.AMD);
-                nameRates[1] = nameof(generalRate.rates.RUB);
-                nameRates[2] = nameof(generalRate.rates.USD);
+                List<string> nameRates = new List<string>(3);
 
-                AppendText(updateBoard, $"\n\r[{DateTime.Now}]", Color.White);
+                AppendText(rateConsole, $"\n\r[{DateTime.Now}]\n\r", Color.White);
+
+                foreach (var item in generalRate.rates.Keys)
+                {
+                    nameRates.Add(item);
+                }
                 for (int i = 0; i < 3; i++)
                 {
                     if (prevRates[i] > nowRates[i])
                     {
-                        AppendText(updateBoard, downArrow, Color.Red);
-                        AppendText(updateBoard, $"  {nameRates[i]}: {prevRates[i]} {RightArrow} {nowRates[i]} \r\n", Color.White);
+                        AppendText(rateConsole, downArrow, Color.Red);
+                        AppendText(rateConsole, $"  {nameRates[i]}: {prevRates[i]} {RightArrow} {nowRates[i]} \r\n", Color.White);
                     }
                     if (prevRates[i] < nowRates[i])
                     {
-                        AppendText(updateBoard, upArrow, Color.Green);
-                        AppendText(updateBoard, $"  {nameRates[i]}: {prevRates[i]} {RightArrow} {nowRates[i]} \r\n", Color.White);
+                        AppendText(rateConsole, upArrow, Color.Green);
+                        AppendText(rateConsole, $"  {nameRates[i]}: {prevRates[i]} {RightArrow} {nowRates[i]} \r\n", Color.White);
                     }
                 }
             }
             else
-                updateBoard.Text += "All Up To Date \r\n";
+                rateConsole.Text += "All Up To Date \r\n";
         }
 
         private void RefreshRate()
         {
-            prevRate = generalRate.rates;
-            generalRate = GetRates();
-            JsonSave();
+            oldRates = generalRate.rates;
+            generalRate = GetRatesWeb();
+            JsonSaveToFile();
         }
 
         private void update_Click(object sender, EventArgs e)
         {
-            if (generalRate.date.Day != DateTime.Now.Day)
+            if (generalRate.date.Day != DateTime.Now.Day || generalRate.date.Year != DateTime.Now.Year || generalRate.date.Month != DateTime.Now.Month)
+            {
                 RefreshRate();
+                DrawResults();
+            }
             else
-                updateBoard.Text += "All Up To Date \r\n";
+                rateConsole.Text += "All Up To Date \r\n";
         }
 
         private void refreshAuto_Tick(object sender, EventArgs e)
